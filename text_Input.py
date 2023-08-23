@@ -126,7 +126,9 @@ class fifo:
     def read(self, val):
         received_data = []
         for i in range(0, val):
-            received_data.append(struct.unpack("<L", self.m[fifo.REC_DATA:fifo.REC_DATA+4])[0])
+            t = struct.unpack("<HH", self.m[fifo.REC_DATA:fifo.REC_DATA+4])
+            received_data.extend([t[1], t[0]])
+            # print(t)
         return received_data
     
     def count(self):
@@ -209,7 +211,7 @@ class streamer:
         while(True):
             if self.fifo.count() > 256:
                 data = self.fifo.read(256)
-                packed_data = struct.pack("<256L", *data)
+                packed_data = struct.pack("<512H", *data)
                 self.packet.send(packed_data)
             else:
                 # print(self.fifo.count())
@@ -281,7 +283,7 @@ if __name__ == "__main__":
             if command_array[0].upper() == "T":
                 try:
                     local_tune = int(command_array[1])
-                    reg.write(register.TUNE, local_freq)
+                    reg.write(register.TUNE, local_tune)
                     disp_tune = local_tune
                     print("Changing Tune", end ="")
                 except ValueError:
